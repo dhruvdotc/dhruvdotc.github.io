@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dhruv Choudhary: Autonomy, Perception, Controls</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#07080D; --surface:#0E1117; --surface2:#111621; --border:#1E2535;
+    --text:#EFF1F8; --muted:#7A8499; --accent:#F5A623;
+    --display:'Space Grotesk',sans-serif; --mono:'JetBrains Mono',monospace;
+    --body:system-ui,-apple-system,sans-serif;
+  }
+  html.light{
+    --bg:#F5F7FC; --surface:#EAEDF6; --surface2:#DDE2EE; --border:#BDC3D4;
+    --text:#0D0F16; --muted:#4E5A6E; --accent:#C07A08;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--bg);color:var(--text);font-family:var(--body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow-x:hidden;transition:background-color 3s ease,color .6s ease;}
+  a{color:var(--muted);text-decoration:none;transition:color .2s;}
+  a:hover{color:var(--text);}
+  ::selection{background:rgba(245,166,35,0.25);color:#fff;}
+
+  /* NAV */
+  #nav{position:fixed;inset:0 0 auto 0;z-index:100;padding:1.1rem 2.5rem;display:flex;align-items:center;justify-content:space-between;transition:background .35s,border-color .35s,backdrop-filter .35s;border-bottom:1px solid transparent;}
+  #nav.scrolled{background:rgba(7,8,13,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom-color:var(--border);}
+  .nav-logo{font-family:var(--display);font-weight:700;font-size:.92rem;color:var(--text);letter-spacing:.02em;display:flex;align-items:center;gap:.55rem;}
+  .nav-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 0 rgba(245,166,35,.5);animation:pulse 2.4s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(245,166,35,.45);}70%{box-shadow:0 0 0 7px rgba(245,166,35,0);}100%{box-shadow:0 0 0 0 rgba(245,166,35,0);}}
+  .nav-links{display:flex;gap:2rem;list-style:none;}
+  .nav-links a{font-size:.82rem;}
+  .nav-links a:hover{color:var(--text);}
+  .nav-left{display:flex;align-items:center;gap:.9rem;}
+  #mode-toggle{position:relative;width:52px;height:28px;background:rgba(110,122,145,.30);border:1.5px solid rgba(110,122,145,.22);border-radius:14px;padding:0;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent;touch-action:pan-y;user-select:none;overflow:hidden;transition:background 3s cubic-bezier(.4,0,.2,1),border-color 2s;}
+  #mode-toggle:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  .toggle-thumb{position:absolute;top:3px;left:3px;width:20px;height:20px;background:#fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.28),0 .5px 1px rgba(0,0,0,.16);transition:transform .52s cubic-bezier(.4,0,.2,1);pointer-events:none;will-change:transform;z-index:2;}
+  .toggle-icon{position:absolute;top:50%;transform:translateY(-50%);font-size:10px;line-height:1;pointer-events:none;z-index:1;}
+  .toggle-sun{left:5px;color:rgba(245,166,35,.95);}
+  .toggle-moon{right:5px;font-size:9px;color:rgba(190,210,240,.90);}
+
+  .container{max-width:1140px;margin:0 auto;padding:0 2.5rem;}
+
+  /* HERO */
+  #hero{position:relative;min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:7rem 2.5rem 5rem;max-width:1140px;margin:0 auto;}
+  #hero-bg{position:absolute;top:0;bottom:0;left:50%;width:100vw;transform:translateX(-50%);z-index:0;pointer-events:none;overflow:hidden;}
+  #hero-bg canvas{position:absolute;inset:0;width:100%;height:100%;}
+  #hero-aurora{z-index:0;}
+  #hero-nodes{z-index:1;}
+  #hero-bg::after{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(180deg,rgba(7,8,13,.45) 0%,rgba(7,8,13,0) 22%,rgba(7,8,13,0) 62%,var(--bg) 100%);}
+  .hero-inner{position:relative;z-index:1;display:flex;align-items:center;gap:0;}
+  .hero-text{flex:1;min-width:0;padding-right:1.5rem;}
+  .hero-drone-wrap{flex:0 0 44%;position:relative;height:74vh;min-height:360px;pointer-events:none;}
+  #hero-drone{position:absolute;inset:0;width:100%;height:100%;}
+  .hero-kicker{font-family:var(--mono);font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:1.5rem;display:flex;align-items:center;gap:.6rem;}
+  .hero-kicker::before{content:'';width:26px;height:1px;background:var(--accent);}
+  .hero-name{font-family:var(--display);font-weight:700;font-size:clamp(3.1rem,9vw,7.2rem);line-height:.93;letter-spacing:-.025em;color:var(--text);margin-bottom:1.5rem;}
+  .hero-sub{font-family:var(--display);font-size:clamp(.82rem,1.6vw,1rem);font-weight:400;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;margin-bottom:2.6rem;}
+  .hero-ctas{display:flex;align-items:center;gap:1.4rem;flex-wrap:wrap;}
+  .btn{font-size:.85rem;color:var(--text);padding:.6rem 1.3rem;border:1px solid var(--border);border-radius:3px;transition:border-color .2s,color .2s,background .2s;}
+  .btn:hover{border-color:var(--accent);color:var(--accent);}
+  .ghost{font-size:.85rem;color:var(--muted);}
+  .ghost:hover{color:var(--text);}
+  .hero-hud{position:absolute;left:2.5rem;right:2.5rem;bottom:1.8rem;z-index:1;display:flex;justify-content:space-between;font-family:var(--mono);font-size:.66rem;color:var(--muted);opacity:.7;letter-spacing:.05em;border-top:1px solid var(--border);padding-top:.7rem;}
+  .hero-hud span{white-space:nowrap;}
+
+  /* WORK VISUAL HEADER */
+  .work-visual-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:2.4rem;}
+  .wvh-cats{display:flex;gap:1.2rem;flex-wrap:wrap;}
+  .wvh-cat{display:flex;align-items:center;gap:.38rem;font-family:var(--mono);font-size:.68rem;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);}
+  .wvh-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);flex-shrink:0;}
+  .wvh-count{font-family:var(--mono);font-size:.62rem;color:var(--muted);opacity:.38;letter-spacing:.1em;white-space:nowrap;}
+
+  /* SECTION SHARED */
+  .section-label{font-family:var(--display);font-weight:500;font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:2.4rem;display:flex;align-items:center;gap:.7rem;}
+  .section-label::after{content:'';flex:1;height:1px;background:var(--border);}
+
+  /* ROBOTX FEATURE */
+  #robotx{position:relative;padding:7rem 0;border-top:1px solid var(--border);overflow:hidden;}
+  .rx-bg{position:absolute;inset:0;background:url('uploads/pasted-1781315673538-0.png') center 38%/cover no-repeat;opacity:.32;z-index:0;}
+  .rx-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,var(--bg) 0%,rgba(7,8,13,.55) 35%,rgba(7,8,13,.78) 100%);}
+  #robotx .container{position:relative;z-index:1;}
+  .rx-grid{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center;}
+  .rx-tag{font-family:var(--mono);font-size:.66rem;letter-spacing:.12em;color:var(--accent);text-transform:uppercase;margin-bottom:1.1rem;}
+  .rx-title{font-family:var(--display);font-weight:700;font-size:clamp(2rem,4.5vw,3.4rem);line-height:1.02;letter-spacing:-.02em;margin-bottom:1.4rem;text-wrap:balance;}
+  .rx-desc{font-size:.95rem;color:var(--muted);line-height:1.75;margin-bottom:1.6rem;max-width:42ch;text-wrap:pretty;}
+  .rx-chips{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.8rem;}
+  .chip{font-family:var(--mono);font-size:.68rem;color:var(--muted);border:1px solid var(--border);border-radius:3px;padding:.3rem .6rem;background:rgba(14,17,23,.6);}
+  .rx-links{display:flex;gap:1.2rem;}
+  .rx-links a{font-size:.82rem;border-bottom:1px solid var(--border);padding-bottom:1px;}
+  .rx-links a:hover{color:var(--accent);border-bottom-color:var(--accent);}
+
+  /* DETECTION CONSOLE */
+  .console{background:rgba(12,15,22,.72);border:1px solid var(--border);border-radius:8px;padding:.9rem;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
+  .console-head{display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:.64rem;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:.7rem;padding:0 .2rem;}
+  .console-head .live{display:flex;align-items:center;gap:.4rem;color:var(--accent);}
+  .console-head .live::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2.4s infinite;}
+  .det-wrap{position:relative;width:100%;aspect-ratio:170/84;border-radius:5px;overflow:hidden;background:#05060a;cursor:pointer;}
+  .det-wrap canvas{position:absolute;inset:0;width:100%;height:100%;}
+  .det-replay{position:absolute;right:8px;bottom:8px;font-family:var(--mono);font-size:.62rem;color:var(--muted);background:rgba(7,8,13,.75);border:1px solid var(--border);border-radius:3px;padding:.2rem .5rem;pointer-events:none;}
+  .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-top:.8rem;}
+  .metric{background:rgba(7,8,13,.5);border:1px solid var(--border);border-radius:4px;padding:.55rem .5rem;text-align:left;}
+  .metric .v{font-family:var(--mono);font-weight:600;font-size:1.02rem;color:var(--accent);line-height:1;}
+  .metric .k{font-family:var(--mono);font-size:.56rem;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;margin-top:.35rem;}
+
+  /* WORK GRID */
+  #work{padding:7rem 0;border-top:1px solid var(--border);}
+  .work-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;}
+  .pcard{background:var(--surface);border:1px solid var(--border);border-radius:7px;overflow:hidden;transition:transform .25s ease,border-color .25s ease;display:flex;flex-direction:column;}
+  .pcard:hover{transform:translateY(-4px);border-color:var(--accent);}
+  .pcard.wide{grid-column:1 / -1;}
+  .viz-wrap{position:relative;width:100%;aspect-ratio:16/7;background:#05060a;border-bottom:1px solid var(--border);overflow:hidden;}
+  .pcard.wide .viz-wrap{aspect-ratio:auto;height:170px;}
+  .viz-wrap canvas{position:absolute;inset:0;width:100%;height:100%;}
+  /* HUD-framed GIF */
+  .gif-stage .mot-gif{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(1.06) contrast(1.03);}
+  .gif-stage{background:#05060a;}
+  .hud-corners{position:absolute;inset:10px;pointer-events:none;z-index:3;}
+  .hud-corners i{position:absolute;width:15px;height:15px;border:1.5px solid rgba(245,166,35,.7);}
+  .hud-corners i:nth-child(1){left:0;top:0;border-right:0;border-bottom:0;}
+  .hud-corners i:nth-child(2){right:0;top:0;border-left:0;border-bottom:0;}
+  .hud-corners i:nth-child(3){left:0;bottom:0;border-right:0;border-top:0;}
+  .hud-corners i:nth-child(4){right:0;bottom:0;border-left:0;border-top:0;}
+  .hud-scan{position:absolute;left:0;right:0;top:-15%;height:16%;z-index:2;pointer-events:none;mix-blend-mode:screen;background:linear-gradient(180deg,rgba(245,166,35,0),rgba(245,166,35,.10) 80%,rgba(245,166,35,.4));animation:scan 4.6s linear infinite;}
+  @keyframes scan{0%{top:-15%;}100%{top:100%;}}
+  .hud-strip{position:absolute;left:11px;bottom:10px;z-index:3;display:flex;align-items:center;gap:.45rem;font-family:var(--mono);font-size:.58rem;letter-spacing:.07em;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.85);background:rgba(7,8,13,.5);padding:.26rem .52rem;border-radius:3px;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);}
+  .hud-rec{width:7px;height:7px;border-radius:50%;background:#ff5a52;box-shadow:0 0 6px rgba(255,90,82,.8);animation:pulse 1.6s infinite;}
+  @media (prefers-reduced-motion:reduce){.hud-scan{display:none;}}
+  .viz-badge{position:absolute;left:10px;top:9px;font-family:var(--mono);font-size:.58rem;letter-spacing:.07em;color:var(--muted);text-transform:uppercase;background:rgba(7,8,13,.7);padding:.18rem .45rem;border-radius:3px;}
+  .pbody{padding:1.5rem;display:flex;flex-direction:column;flex:1;}
+  .pcard.wide .pbody{flex-direction:row;gap:2rem;align-items:flex-start;}
+  .pcard.wide .pbody>div:first-child{flex:1;}
+  .ptag{font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;color:var(--accent);text-transform:uppercase;margin-bottom:.65rem;}
+  .ptitle{font-family:var(--display);font-weight:700;font-size:1.06rem;color:var(--text);line-height:1.3;margin-bottom:.75rem;}
+  .pdesc{font-size:.85rem;color:var(--muted);line-height:1.7;margin-bottom:1rem;text-wrap:pretty;}
+  .pmetrics{display:flex;flex-wrap:wrap;gap:.4rem .9rem;font-family:var(--mono);font-size:.7rem;color:var(--text);opacity:.9;margin-bottom:1rem;}
+  .pmetrics b{color:var(--accent);font-weight:600;}
+  .plinks{display:flex;gap:1rem;flex-wrap:wrap;margin-top:auto;}
+  .plinks a{font-size:.76rem;color:var(--muted);border-bottom:1px solid var(--border);padding-bottom:1px;transition:color .2s,border-color .2s;}
+  .plinks a:hover{color:var(--accent);border-bottom-color:var(--accent);}
+
+  /* EXPERIENCE */
+  #experience{padding:7rem 0;border-top:1px solid var(--border);}
+  .exp-item{display:grid;grid-template-columns:1fr auto;gap:2rem;padding:1.25rem 0;border-bottom:1px solid var(--border);align-items:baseline;transition:padding-left .25s,background .25s;}
+  .exp-item:first-of-type{border-top:1px solid var(--border);}
+  .exp-item:hover{padding-left:.7rem;}
+  .exp-role{font-family:var(--display);font-weight:500;font-size:.92rem;color:var(--text);margin-bottom:.22rem;}
+  .exp-role .org{color:var(--muted);font-weight:400;}
+  .exp-desc{font-size:.84rem;color:var(--muted);line-height:1.5;max-width:62ch;}
+  .exp-dates{font-family:var(--mono);font-size:.69rem;color:var(--muted);white-space:nowrap;opacity:.75;}
+
+  /* ABOUT */
+  #about{padding:7rem 0;border-top:1px solid var(--border);}
+  .about-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:3rem;}
+  .about-lead{font-family:var(--display);font-weight:500;font-size:clamp(1.25rem,2.4vw,1.75rem);line-height:1.45;color:var(--text);letter-spacing:-.01em;text-wrap:pretty;}
+  .about-lead .dim{color:var(--muted);}
+  .about-side{font-size:.88rem;color:var(--muted);line-height:1.8;}
+  .about-side h4{font-family:var(--mono);font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:0 0 .7rem;font-weight:600;}
+  .about-side p{margin-bottom:1.4rem;}
+  .stack{font-family:var(--mono);font-size:.78rem;color:var(--muted);opacity:.7;letter-spacing:.02em;line-height:2;}
+
+  /* FOOTER */
+  footer{border-top:1px solid var(--border);padding:3rem 0 3.5rem;}
+  .foot{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:1.5rem;}
+  .foot-big{font-family:var(--display);font-weight:700;font-size:clamp(1.6rem,3.5vw,2.6rem);letter-spacing:-.02em;line-height:1.05;margin-bottom:1rem;}
+  .foot-big a{color:var(--text);}
+  .foot-big a:hover{color:var(--accent);}
+  .foot-links{display:flex;gap:1.4rem;flex-wrap:wrap;}
+  .foot-links a{font-size:.85rem;}
+  .foot-meta{font-family:var(--mono);font-size:.67rem;color:var(--muted);opacity:.55;text-align:right;line-height:1.7;}
+
+  /* REVEAL */
+  .reveal{opacity:0;transform:translateY(22px);transition:opacity .6s ease-out,transform .6s ease-out;}
+  .reveal.in{opacity:1;transform:none;}
+  .reveal.d1{transition-delay:.08s;}.reveal.d2{transition-delay:.16s;}.reveal.d3{transition-delay:.24s;}
+  @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none;}html{scroll-behavior:auto;}}
+
+  /* SEGMENTATION VIEWER */
+  #seg-viewer{padding:0;}
+  .seg-grid{display:grid;grid-template-columns:1.4fr 1fr;width:100%;}
+  .seg-stage{position:relative;background:#0a0c12;aspect-ratio:366/196;overflow:hidden;border-right:1px solid var(--border);}
+  .seg-layer{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .4s ease;}
+  .seg-layer.on{opacity:1;}
+  .seg-readout{position:absolute;right:10px;bottom:10px;display:flex;flex-direction:column;align-items:flex-end;gap:.05rem;font-family:var(--mono);background:rgba(7,8,13,.62);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);border:1px solid var(--border);border-radius:4px;padding:.4rem .6rem;}
+  .seg-readout .seg-read-k{font-size:.54rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+  .seg-readout #seg-read-val{font-size:1.05rem;font-weight:600;color:var(--accent);line-height:1.05;}
+  .seg-readout .seg-read-note{font-size:.55rem;color:var(--muted);letter-spacing:.04em;}
+  .seg-panel{padding:1.5rem;display:flex;flex-direction:column;gap:.85rem;}
+  .seg-panel .pdesc{margin-bottom:0;}
+  .seg-tabs{display:flex;flex-wrap:wrap;gap:.4rem;}
+  .seg-tab{font-family:var(--mono);font-size:.66rem;color:var(--text);background:rgba(30,37,53,.6);border:1px solid var(--border);border-radius:4px;padding:.34rem .6rem;cursor:pointer;transition:border-color .2s,color .2s,background .2s;}
+  .seg-tab:hover{color:var(--text);border-color:var(--muted);}
+  .seg-tab.active{color:var(--accent);border-color:var(--accent);background:rgba(245,166,35,.08);}
+  .seg-bars{display:flex;flex-direction:column;gap:.42rem;margin-top:.1rem;}
+  .seg-bar-row{display:grid;grid-template-columns:78px 1fr 42px;align-items:center;gap:.55rem;font-family:var(--mono);font-size:.62rem;color:var(--muted);cursor:pointer;opacity:.7;transition:opacity .2s;}
+  .seg-bar-row:hover{opacity:1;}
+  .seg-bar-row.sel{opacity:1;color:var(--text);}
+  .seg-bar-lbl{display:flex;align-items:center;gap:.3rem;white-space:nowrap;}
+  .best-tag{font-style:normal;font-size:.5rem;letter-spacing:.08em;text-transform:uppercase;color:var(--bg);background:var(--accent);border-radius:2px;padding:.05rem .25rem;}
+  .seg-bar-track{height:6px;background:rgba(122,132,153,.14);border-radius:3px;overflow:hidden;}
+  .seg-bar-fill{display:block;height:100%;background:var(--muted);border-radius:3px;transition:width .5s ease;}
+  .seg-bar-row.best .seg-bar-fill{background:var(--accent);}
+  .seg-bar-row.sel .seg-bar-fill{box-shadow:0 0 0 1px rgba(245,166,35,.4) inset;}
+  .seg-bar-num{text-align:right;color:var(--text);opacity:.85;}
+
+  /* TRITONBOT SCROLL SHOWCASE */
+  #tritonbot{position:relative;border-top:1px solid var(--border);background:radial-gradient(120% 80% at 50% 0%,#0b0f17 0%,var(--bg) 60%);}
+  .tb-scroll{position:relative;height:340vh;}
+  .tb-sticky{position:sticky;top:0;height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+  .tb-ring{position:absolute;left:50%;top:50%;width:min(78vh,640px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;
+    background:conic-gradient(from 0deg,rgba(245,166,35,.16),rgba(245,166,35,0) 22%,rgba(245,166,35,0) 100%);
+    -webkit-mask:radial-gradient(closest-side,transparent 60%,#000 61%,#000 100%);mask:radial-gradient(closest-side,transparent 60%,#000 61%,#000 100%);will-change:transform;}
+  .tb-ring2{position:absolute;left:50%;top:50%;width:min(86vh,720px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;border:1px solid rgba(122,132,153,.14);pointer-events:none;}
+  .tb-ring3{position:absolute;left:50%;top:50%;width:min(62vh,520px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;border:1px dashed rgba(122,132,153,.12);pointer-events:none;}
+  .tb-glow{position:absolute;left:50%;top:54%;width:min(60vh,520px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;
+    background:radial-gradient(closest-side,rgba(245,166,35,.18),rgba(245,166,35,0) 70%);filter:blur(8px);}
+  .tb-robot-wrap{position:relative;width:min(46vh,360px);transform-style:preserve-3d;perspective:1400px;will-change:transform;z-index:2;}
+  .tb-robot{width:100%;display:block;filter:drop-shadow(0 40px 50px rgba(0,0,0,.6));will-change:transform;}
+  .tb-floor{position:absolute;left:50%;bottom:-6%;width:84%;height:10%;transform:translateX(-50%);background:radial-gradient(closest-side,rgba(122,132,153,.4),rgba(122,132,153,0) 75%);filter:blur(7px);opacity:.5;}
+  /* heading lives top-left, fades as you scroll in */
+  .tb-head{position:absolute;left:6vw;top:18vh;max-width:30ch;z-index:3;}
+  .tb-tag{font-family:var(--mono);font-size:.66rem;letter-spacing:.13em;text-transform:uppercase;color:var(--accent);margin-bottom:1rem;}
+  .tb-title{font-family:var(--display);font-weight:700;font-size:clamp(2rem,4.4vw,3.3rem);line-height:1.02;letter-spacing:-.02em;margin-bottom:1.1rem;text-wrap:balance;}
+  .tb-sub{font-size:.92rem;color:var(--muted);line-height:1.7;max-width:34ch;text-wrap:pretty;}
+  .tb-progress{position:absolute;right:6vw;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:.65rem;z-index:3;}
+  .tb-dot{display:flex;align-items:center;gap:.6rem;font-family:var(--mono);font-size:.62rem;letter-spacing:.05em;color:var(--muted);opacity:.4;transition:opacity .3s,color .3s;justify-content:flex-end;}
+  .tb-dot::after{content:'';width:8px;height:8px;border-radius:50%;border:1px solid var(--muted);transition:background .3s,border-color .3s,box-shadow .3s;}
+  .tb-dot.on{opacity:1;color:var(--text);}
+  .tb-dot.on::after{background:var(--accent);border-color:var(--accent);box-shadow:0 0 8px rgba(245,166,35,.6);}
+  /* callouts */
+  .tb-callout{position:absolute;z-index:4;max-width:230px;opacity:0;transform:translateY(10px);transition:opacity .45s ease,transform .45s ease;pointer-events:none;}
+  .tb-callout.on{opacity:1;transform:none;}
+  .tb-callout .tb-c-line{height:1px;background:linear-gradient(90deg,var(--accent),rgba(245,166,35,0));margin-bottom:.5rem;}
+  .tb-callout.right .tb-c-line{background:linear-gradient(270deg,var(--accent),rgba(245,166,35,0));}
+  .tb-callout.right{text-align:right;}
+  .tb-c-k{font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:.25rem;}
+  .tb-c-v{font-size:.82rem;color:var(--text);line-height:1.5;}
+  .tb-c-dot{position:absolute;width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px rgba(245,166,35,.7);}
+  @media (prefers-reduced-motion:reduce){
+    .tb-scroll{height:auto;padding:6rem 0;}
+    .tb-sticky{position:relative;height:auto;flex-direction:column;gap:2.5rem;padding:0 2rem;}
+    .tb-head{position:relative;left:auto;top:auto;}
+    .tb-progress{display:none;}
+    .tb-callout{position:relative;opacity:1;transform:none;max-width:none;}
+  }
+  @media (max-width:820px){
+    .seg-grid{grid-template-columns:1fr;}
+    .seg-stage{border-right:0;border-bottom:1px solid var(--border);}
+    .tb-head{left:1.5rem;top:9vh;}
+    .tb-progress{display:none;}
+    .tb-callout{display:none;}
+    .tb-robot-wrap{width:min(60vh,300px);}
+  }
+
+  /* RESPONSIVE */
+  @media (max-width:900px){
+    .rx-grid{grid-template-columns:1fr;gap:2rem;}
+    .about-grid{grid-template-columns:1fr;gap:2rem;}
+    .hero-inner{flex-direction:column-reverse;}
+    .hero-text{padding-right:0;}
+    .hero-drone-wrap{flex:none;width:100%;height:44vw;min-height:200px;}
+  }
+  @media (max-width:820px){
+    #nav{padding:1rem 1.5rem;}
+    .container{padding:0 1.5rem;}
+    #hero{padding:7rem 1.5rem 5rem;}
+    .hero-hud{left:1.5rem;right:1.5rem;}
+    .work-grid{grid-template-columns:1fr;}
+    .pcard.wide{grid-column:1;}
+    .pcard.wide .pbody{flex-direction:column;gap:1rem;}
+    .pcard.wide .viz-wrap{height:140px;}
+    .exp-item{grid-template-columns:1fr;gap:.3rem;}
+    .exp-dates{order:-1;}
+    .foot{flex-direction:column;align-items:flex-start;}
+    .foot-meta{text-align:left;}
+    .metrics{grid-template-columns:repeat(2,1fr);}
+  }
+  @media (max-width:480px){.nav-links{display:none;}.hero-hud span:nth-child(2){display:none;}}
+
+  /* LIGHT MODE OVERRIDES */
+  html.light #nav.scrolled{background:rgba(245,247,252,.88);}
+  html.light #hero-bg::after{background:linear-gradient(180deg,rgba(240,242,250,.28) 0%,rgba(240,242,250,0) 22%,rgba(240,242,250,0) 60%,var(--bg) 100%);}
+  html.light .gif-stage{background:#05080e;}
+  html.light .seg-stage{background:#05080e;}
+  html.light .viz-wrap{background:#07080d;}
+  html.light .hud-strip{background:rgba(5,8,14,.72);}
+  html.light .hud-scan{opacity:.65;}
+  html.light #tritonbot{background:radial-gradient(120% 80% at 50% 0%,#d6e3f4 0%,var(--bg) 60%);}
+  html.light .seg-readout{background:rgba(240,242,250,.82);border-color:var(--border);}
+  html.light .seg-readout #seg-read-val{color:var(--accent);}
+  html.light .mt-icon.active{color:#fff;}
+  html.light .tb-ring2{border-color:rgba(50,80,130,.18);}
+  html.light .tb-ring3{border-color:rgba(50,80,130,.14);}
+  html.light .tb-glow{background:radial-gradient(closest-side,rgba(192,122,8,.22),rgba(192,122,8,0) 70%);}
+  html.light .hero-hud{border-top-color:var(--border);}
+  html.light .seg-tab{background:rgba(220,225,238,.5);}
+  html.light .seg-tab.active{background:rgba(192,122,8,.12);}
+  html.light ::selection{background:rgba(192,122,8,.22);color:var(--text);}
+  html.light #mode-toggle{background:var(--accent);border-color:var(--accent);}
+  html.light body{transition:background-color 3s ease,color .6s ease;}
+  html.light .seg-tab{background:rgba(210,215,228,.65);color:var(--text);}
+  html.light #nav,html.light .pcard,html.light .exp-item,html.light footer{transition:background-color .5s ease,border-color .35s ease;}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="nav-left">
+    <button id="mode-toggle" role="switch" aria-checked="false" aria-label="Toggle day/night">
+      <span class="toggle-icon toggle-sun">&#9728;</span>
+      <span class="toggle-icon toggle-moon">&#9789;</span>
+      <span class="toggle-thumb"></span>
+    </button>
+    <span class="nav-logo"><span class="nav-dot"></span>Dhruv Choudhary</span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#robotx">Work</a></li>
+    <li><a href="#experience">Experience</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="mailto:dhruv.roych@gmail.com">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero" data-screen-label="Hero">
+  <div id="hero-bg"><canvas id="hero-aurora"></canvas><canvas id="hero-nodes"></canvas></div>
+  <div class="hero-inner">
+    <div class="hero-text">
+      <p class="hero-kicker">ECE · UC San Diego · Machine Learning &amp; Controls</p>
+      <h1 class="hero-name">Dhruv<br>Choudhary</h1>
+      <p class="hero-sub">Perception · Control · Autonomous Systems</p>
+      <div class="hero-ctas">
+        <a href="#robotx" class="btn">See the work</a>
+        <a href="https://github.com/dhruvdotc" target="_blank" rel="noopener" class="ghost">GitHub &rarr;</a>
+      </div>
+    </div>
+    <div class="hero-drone-wrap"><canvas id="hero-drone"></canvas></div>
+  </div>
+  <div class="hero-hud">
+    <span id="hud-time">--:--:-- PT</span>
+    <span>INTELLIGENT SYSTEMS · MACHINE LEARNING · GAME THEORY</span>
+    <span>STATUS: AVAILABLE</span>
+  </div>
+</section>
+
+<!-- ROBOTX FEATURE -->
+<section id="robotx" data-screen-label="RobotX">
+  <div class="rx-bg"></div>
+  <div class="container">
+    <div class="rx-grid">
+      <div class="reveal">
+        <p class="rx-tag">Maritime RobotX 2026 · Singapore</p>
+        <h2 class="rx-title">Perception that runs on the drone.</h2>
+        <p class="rx-desc">A custom quadrotor finds colored buoys from the air, turns each pixel detection into a GPS fix through monocular ray projection, and relays the map to a surface vessel over ROS2 and RF. The full stack runs on a Jetson Orin Nano. No cloud, no ground compute.</p>
+        <div class="rx-chips">
+          <span class="chip">YOLOv11n + HSV</span>
+          <span class="chip">Jetson Orin Nano</span>
+          <span class="chip">ROS2 pub/sub</span>
+          <span class="chip">Monocular ray projection</span>
+          <span class="chip">UAV → USV relay</span>
+        </div>
+        <div class="rx-links">
+          <a href="https://saxysteph.github.io/145-237D-robotx-navigation" target="_blank" rel="noopener">Read the paper</a>
+          <a href="https://github.com/dhruvdotc" target="_blank" rel="noopener">GitHub</a>
+        </div>
+      </div>
+      <div class="reveal d1">
+        <div class="console">
+          <div class="console-head">
+            <span>buoy_detect.py · live inference</span>
+            <span class="live">on-board</span>
+          </div>
+          <div class="det-wrap" id="det-wrap" title="Click to replay">
+            <canvas id="det-canvas"></canvas>
+            <span class="det-replay">click to replay</span>
+          </div>
+          <div class="metrics" id="rx-metrics">
+            <div class="metric"><div class="v" data-count="0.967" data-dec="3">0.000</div><div class="k">mAP@50</div></div>
+            <div class="metric"><div class="v" data-count="0.944" data-dec="3">0.000</div><div class="k">Precision</div></div>
+            <div class="metric"><div class="v" data-count="0.960" data-dec="3">0.000</div><div class="k">F1 score</div></div>
+            <div class="metric"><div class="v" data-count="50" data-dec="0" data-prefix="&lt;" data-suffix="ms">0ms</div><div class="k">Latency</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WORK -->
+<section id="work" data-screen-label="Work">
+  <div class="container">
+    <div class="work-visual-header">
+      <div class="wvh-cats">
+        <span class="wvh-cat"><span class="wvh-dot"></span>Perception</span>
+        <span class="wvh-cat"><span class="wvh-dot"></span>Control</span>
+        <span class="wvh-cat"><span class="wvh-dot"></span>Optimization</span>
+        <span class="wvh-cat"><span class="wvh-dot"></span>Agentic&nbsp;AI</span>
+      </div>
+      <span class="wvh-count">5 projects</span>
+    </div>
+    <div class="work-grid">
+
+      <!-- CARLA MOT -->
+      <article class="pcard reveal" data-screen-label="CARLA MOT">
+        <div class="viz-wrap gif-stage">
+          <img class="mot-gif" src="uploads/tracking-a34f6a75.gif" alt="CARLA multi-object tracking with YOLOv8 + ByteTrack" loading="lazy">
+          <span class="viz-badge">RGB → YOLOv8 → ByteTrack</span>
+          <div class="hud-scan"></div>
+          <div class="hud-corners"><i></i><i></i><i></i><i></i></div>
+          <div class="hud-strip"><span class="hud-rec"></span>TRACKING · CARLA · conf 0.65</div>
+        </div>
+        <div class="pbody">
+          <p class="ptag">Perception · Research · 2025</p>
+          <h3 class="ptitle">Detection–Tracking Coupling in Online MOT</h3>
+          <p class="pdesc">End-to-end CARLA pipeline measured across 4,500 frames. Raising detector confidence from 0.40 to 0.65 cut active tracks per frame by 60% while sub-second ID churn rose 38%. ID stability turns out to be dominated by detection sparsity.</p>
+          <div class="pmetrics"><span><b>4,500</b> frames</span><span><b>~2k</b> trajectories</span><span>CV · Kalman · GRU</span></div>
+          <div class="plinks">
+            <a href="https://github.com/dhruvdotc/carla-yolov8-mot-confidence" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://www.youtube.com/watch?v=ls9mTG2TMYw" target="_blank" rel="noopener">Demo</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- SEGMENTATION — interactive repair-method viewer -->
+      <article class="pcard wide reveal d1" id="seg-viewer" data-screen-label="Segmentation">
+        <div class="seg-grid">
+          <div class="seg-stage">
+            <img class="seg-layer" data-key="input" src="assets/seg_input.png" alt="Blurred RGB input">
+            <img class="seg-layer" data-key="baseline" src="assets/seg_baseline.png" alt="Baseline prediction">
+            <img class="seg-layer" data-key="nn" src="assets/seg_nn.png" alt="Nearest-neighbour inpaint">
+            <img class="seg-layer" data-key="regionfill" src="assets/seg_regionfill.png" alt="Region-fill inpaint">
+            <img class="seg-layer on" data-key="diffusion" src="assets/seg_diffusion.png" alt="Diffusion inpaint">
+            <span class="viz-badge">DeepLabV3 · Cityscapes · blur corruption</span>
+            <div class="seg-readout"><span class="seg-read-k">img mIoU</span><span id="seg-read-val">0.2265</span><span class="seg-read-note" id="seg-read-note">diffusion inpaint</span></div>
+          </div>
+          <div class="seg-panel">
+            <p class="ptag">ML · Robustness · 2026</p>
+            <h3 class="ptitle">Confidence-Guided Repair Under Distribution Shift</h3>
+            <p class="pdesc">DeepLabV3-ResNet50 on Cityscapes, stressed with Gaussian blur. A post-hoc pass repairs only low-confidence pixels, no retraining. Step through the methods and compare per-image mIoU.</p>
+            <div class="seg-tabs" role="tablist">
+              <button class="seg-tab" data-key="input" data-note="degraded RGB input">Blur input</button>
+              <button class="seg-tab" data-key="baseline" data-miou="0.226438" data-note="no repair applied">Baseline</button>
+              <button class="seg-tab" data-key="nn" data-miou="0.220850" data-note="nearest-neighbour inpaint">NN</button>
+              <button class="seg-tab" data-key="regionfill" data-miou="0.222461" data-note="region-fill inpaint">Region fill</button>
+              <button class="seg-tab active" data-key="diffusion" data-miou="0.226457" data-note="diffusion inpaint · best">Diffusion</button>
+            </div>
+            <div class="seg-bars">
+              <div class="seg-bar-row" data-key="baseline"><span class="seg-bar-lbl">Baseline</span><span class="seg-bar-track"><span class="seg-bar-fill" style="width:84%"></span></span><span class="seg-bar-num">.2264</span></div>
+              <div class="seg-bar-row" data-key="nn"><span class="seg-bar-lbl">NN</span><span class="seg-bar-track"><span class="seg-bar-fill" style="width:11%"></span></span><span class="seg-bar-num">.2209</span></div>
+              <div class="seg-bar-row" data-key="regionfill"><span class="seg-bar-lbl">Region fill</span><span class="seg-bar-track"><span class="seg-bar-fill" style="width:28%"></span></span><span class="seg-bar-num">.2225</span></div>
+              <div class="seg-bar-row best" data-key="diffusion"><span class="seg-bar-lbl">Diffusion <i class="best-tag">best</i></span><span class="seg-bar-track"><span class="seg-bar-fill" style="width:100%"></span></span><span class="seg-bar-num">.2265</span></div>
+            </div>
+            <div class="plinks">
+              <a href="https://dhruvdotc.github.io/temporal_cityscapes/Final_Project_Report.pdf" target="_blank" rel="noopener">Report</a>
+              <a href="https://github.com/dhruvdotc/temporal_cityscapes" target="_blank" rel="noopener">GitHub</a>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- VEHICLE STEERING -->
+      <article class="pcard reveal" data-screen-label="Vehicle Steering">
+        <div class="viz-wrap"><span class="viz-badge">Step response · lane error</span><canvas data-viz="control"></canvas></div>
+        <div class="pbody">
+          <p class="ptag">Control Systems · 2026</p>
+          <h3 class="ptitle">PID and Lead-Lag Lane-Keeping Controller</h3>
+          <p class="pdesc">Two controllers for a single-track bicycle model at 25 m/s. Routh-Hurwitz analysis showed proportional-only control is conditionally stable and undamped. PID loop-shaping at 12 rad/s reached 66° phase margin and zero steady-state lane error.</p>
+          <div class="pmetrics"><span>PM <b>66°</b></span><span>Rise <b>94ms</b></span><span>BW <b>17.6</b> rad/s</span><span><b>&lt;6cm</b> peak error</span></div>
+          <div class="plinks"><a href="#" title="Report coming soon">Report soon</a></div>
+        </div>
+      </article>
+
+      <!-- UAM SCHEDULER -->
+      <article class="pcard reveal d1" data-screen-label="UAM Scheduler">
+        <div class="viz-wrap"><span class="viz-badge">Time-expanded MWIS</span><canvas data-viz="scheduler"></canvas></div>
+        <div class="pbody">
+          <p class="ptag">Optimization · Internship · 2025</p>
+          <h3 class="ptitle">Day-Ahead Flight Scheduler for Urban Air Mobility</h3>
+          <p class="pdesc">Built at FastFlyrr. Time-expanded conflict graphs plus greedy Maximum Weighted Independent Set produce conflict-free flight plans under weather, delay, and vertiport constraints. Multi-refuel routing with global consistency checks rejects infeasible plans before output.</p>
+          <div class="pmetrics"><span>conflict-free</span><span>multi-refuel</span><span>release-time aware</span></div>
+          <div class="plinks"><a href="https://github.com/dhruvdotc/route-scheduler-system" target="_blank" rel="noopener">GitHub</a></div>
+        </div>
+      </article>
+
+      <!-- FAULTWISE (wide) -->
+      <article class="pcard wide reveal" data-screen-label="FaultWise">
+        <div class="viz-wrap"><span class="viz-badge">Net-level constraint check</span><canvas data-viz="fault"></canvas></div>
+        <div class="pbody">
+          <div>
+            <p class="ptag">Agentic AI · Internship · 2026</p>
+            <h3 class="ptitle">FaultWise: PCB Fault Detection</h3>
+            <p class="pdesc">Built at NeuralSeek. Rule-based electrical reasoning paired with AI constraint checking catches unsafe circuit configurations before anyone touches a soldering iron. It flags the issue and proposes a fix in one pass.</p>
+          </div>
+          <div class="plinks"><a href="https://faultwiser.lovable.app/" target="_blank" rel="noopener">Live tool &rarr;</a></div>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- TRITONBOT SCROLL SHOWCASE -->
+<section id="tritonbot" data-screen-label="TritonBot">
+  <div class="tb-scroll">
+    <div class="tb-sticky">
+      <div class="tb-head">
+        <p class="tb-tag">TritonBot FC · RoboCup SSL · 2024–25</p>
+        <h2 class="tb-title">A robot that kicks at&nbsp;200&nbsp;volts.</h2>
+        <p class="tb-sub">I built the kicker electronics for our Small Size League robot: an LT3751 flyback charger that stores energy in a capacitor bank and dumps it through a solenoid to strike the ball. Scroll to take it apart.</p>
+      </div>
+
+      <div class="tb-ring"></div>
+      <div class="tb-ring2"></div>
+      <div class="tb-ring3"></div>
+      <div class="tb-glow"></div>
+
+      <div class="tb-robot-wrap">
+        <img class="tb-robot" src="assets/robot.png" alt="TritonBot FC RoboCup SSL robot, CAD model">
+        <div class="tb-floor"></div>
+      </div>
+
+      <!-- callouts: positioned around the sticky stage -->
+      <div class="tb-callout right" data-step="1" style="right:8vw;top:24vh;">
+        <div class="tb-c-line"></div>
+        <div class="tb-c-k">Capacitor bank</div>
+        <div class="tb-c-v">Stores the charge that fires the kick, mounted under the top deck.</div>
+      </div>
+      <div class="tb-callout" data-step="2" style="left:8vw;top:52vh;">
+        <div class="tb-c-line"></div>
+        <div class="tb-c-k">LT3751 flyback charger</div>
+        <div class="tb-c-v">Boosts the battery rail to ~200&nbsp;V to charge the bank between shots.</div>
+      </div>
+      <div class="tb-callout right" data-step="3" style="right:9vw;top:58vh;">
+        <div class="tb-c-line"></div>
+        <div class="tb-c-k">Solenoid kicker</div>
+        <div class="tb-c-v">A current pulse drives the plunger that strikes the ball.</div>
+      </div>
+      <div class="tb-callout" data-step="4" style="left:8vw;top:64vh;">
+        <div class="tb-c-line"></div>
+        <div class="tb-c-k">Omni-wheel drive</div>
+        <div class="tb-c-v">Four omnidirectional wheels for holonomic motion on the pitch.</div>
+      </div>
+
+      <div class="tb-progress">
+        <span class="tb-dot" data-step="1">Capacitor bank</span>
+        <span class="tb-dot" data-step="2">Flyback charger</span>
+        <span class="tb-dot" data-step="3">Solenoid kicker</span>
+        <span class="tb-dot" data-step="4">Omni-wheel drive</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EXPERIENCE -->
+<section id="experience" data-screen-label="Experience">
+  <div class="container">
+    <p class="section-label">Experience</p>
+
+    <div class="exp-item reveal"><div><p class="exp-role">RobotX Navigation Team <span class="org">· UC San Diego</span></p><p class="exp-desc">UAV aerial perception and UAV→USV communication for Maritime RobotX 2026. Advisor: [Prof. Jack Silberman]</p></div><span class="exp-dates">Apr 2026 — Present</span></div>
+
+    <div class="exp-item reveal"><div><p class="exp-role">Undergraduate Researcher <span class="org">· UC San Diego</span></p><p class="exp-desc">Multi-agent game-theoretic simulation; model-free Nash equilibrium seeking under adversarial perturbations. Advisor: [Prof. Jorge Poveda]</p></div><span class="exp-dates">Mar 2026 — Present</span></div>
+
+    <div class="exp-item reveal"><div><p class="exp-role">Agentic AI Intern <span class="org">· NeuralSeek</span></p><p class="exp-desc">Built FaultWise, a circuit and PCB validation tool. Miami, FL.</p></div><span class="exp-dates">Jan — Mar 2026</span></div>
+
+    <div class="exp-item reveal"><div><p class="exp-role">AI Navigators Intern <span class="org">· FastFlyrr</span></p><p class="exp-desc">Designed and shipped the day-ahead UAM route scheduler. Tampa, FL.</p></div><span class="exp-dates">Oct 2025 — Mar 2026</span></div>
+
+    <div class="exp-item reveal"><div><p class="exp-role">Research Apprentice <span class="org">· Qualcomm Institute</span></p><p class="exp-desc">Block-level 5G transceiver prototype, demonstrated at the G.E.A.R. 2025 Symposium. Advisor: Dr. Prasad Gudem.</p></div><span class="exp-dates">Sep 2024 — Sep 2025</span></div>
+
+    <div class="exp-item reveal"><div><p class="exp-role">Mechatronics <span class="org">· TritonBot FC (RoboCup SSL)</span></p><p class="exp-desc">LT3751 flyback transformer systems for solenoid actuation on autonomous robots.</p></div><span class="exp-dates">Sep 2024 — Jun 2025</span></div>
+
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about" data-screen-label="About">
+  <div class="container">
+    <div class="about-grid">
+      <p class="about-lead reveal">I work on systems that have to hold up in the physical world. <span class="dim">UAVs, controllers, perception pipelines, the optimization underneath all of it.</span> Right now that means edge perception for a competition drone and game-theoretic research at UCSD.</p>
+      <div class="about-side reveal d1">
+        <h4>Background</h4>
+        <p>Electrical Engineering at UC San Diego, depth in Machine Learning and Controls. 3.9 major GPA, graduating March 2027. IEEE UCSD Social Chair, and a 2024 Quarterly Projects winner for a circadian-rhythm RGB clock.</p>
+        <h4>Certifications</h4>
+        <p>Machine Learning &amp; Deep Learning Specializations (Stanford). Python for Data Science, AI &amp; Development (IBM).</p>
+        <h4>Stack</h4>
+        <p class="stack">Python · C++ · MATLAB · PyTorch · OpenCV · ROS2 · YOLO · Jetson · Cadence · Git</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer data-screen-label="Contact">
+  <div class="container">
+    <div class="foot">
+      <div>
+        <div class="foot-big"><a href="mailto:dhruv.roych@gmail.com">Let's build something.</a></div>
+        <div class="foot-links">
+          <a href="mailto:dhruv.roych@gmail.com">dhruv.roych@gmail.com</a>
+          <a href="https://github.com/dhruvdotc" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://linkedin.com/in/dhruvdotc" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+      </div>
+      <div class="foot-meta">UC San Diego · ECE<br>Graduating March 2027<br>Open to internships and research roles</div>
+    </div>
+  </div>
+</footer>
+
+<script src="viz.js"></script>
+<script src="hero-field.js"></script>
+<script src="tritonbot.js"></script>
+<script src="drone3d.js"></script>
+<script>
+  // ── GPS scramble → lock ──────────────────────────────────
+
+  // ── live clock in HUD ────────────────────────────────────
+  (function(){
+    const el=document.getElementById('hud-time');
+    function tick(){
+      try{
+        const now=new Date();
+        const tz=Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const s=now.toLocaleTimeString('en-US',{hour12:false,timeZone:tz});
+        const tzShort=new Intl.DateTimeFormat('en-US',{timeZoneName:'short',timeZone:tz}).format(now).split(', ')[1]||tz.split('/').pop().replace('_',' ');
+        el.textContent=s+' '+tzShort;
+      }catch(e){el.textContent=new Date().toLocaleTimeString()+' PT';}
+    }
+    tick();setInterval(tick,1000);
+  })();
+
+  // ── nav frost ────────────────────────────────────────────
+  const nav=document.getElementById('nav');
+  window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',window.scrollY>24),{passive:true});
+
+  // ── reveal ───────────────────────────────────────────────
+  const ro=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');ro.unobserve(e.target);}});},{threshold:.08,rootMargin:'0px 0px -40px 0px'});
+  document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
+
+  // ── hero backdrop ────────────────────────────────────────
+  const hf=HeroField.initHeroField(document.getElementById('hero-aurora'),document.getElementById('hero-nodes'));
+  hf.play();
+  if(window.Drone3D){
+    const drone=Drone3D.initDrone(document.getElementById('hero-drone'),()=>hf.getMouse());
+    drone.play();
+  }
+  if(window.TritonBot) TritonBot.init();
+
+  // ── day/night toggle (Apple-style pill, drag + click, time default) ───
+  (function(){
+    const btn=document.getElementById('mode-toggle');
+    const thumb=btn.querySelector('.toggle-thumb');
+    const TRAVEL=22;
+    // Default: localStorage first, then local hour (6am-7pm=day)
+    let light;
+    const stored=localStorage.getItem('dhruv-mode');
+    if(stored!==null){ light=stored==='light'; }
+    else{ const h=new Date().getHours(); light=(h>=6&&h<19); }
+
+    function setThumb(l,animated){
+      thumb.style.transition=animated?'':'none';
+      thumb.style.transform=l?`translateX(${TRAVEL}px)`:'translateX(0px)';
+      if(!animated) requestAnimationFrame(()=>{ thumb.style.transition=''; });
+    }
+    function apply(l,animated=true){
+      light=l;
+      document.documentElement.classList.toggle('light',l);
+      btn.setAttribute('aria-checked',String(l));
+      setThumb(l,animated);
+      if(hf&&hf.setMode) hf.setMode(l);
+      localStorage.setItem('dhruv-mode',l?'light':'dark');
+    }
+    apply(light,false); // instant on load
+
+    // drag
+    let dragging=false,startX=0,startLight=false,moved=false;
+    const DRAG_MIN=5;
+    btn.addEventListener('pointerdown',e=>{
+      dragging=true;startX=e.clientX;startLight=light;moved=false;
+      btn.setPointerCapture(e.pointerId);
+      thumb.style.transition='none';
+      e.preventDefault();
+    });
+    btn.addEventListener('pointermove',e=>{
+      if(!dragging)return;
+      const dx=e.clientX-startX;
+      if(Math.abs(dx)>DRAG_MIN) moved=true;
+      const pos=Math.max(0,Math.min(TRAVEL,(startLight?TRAVEL:0)+dx));
+      thumb.style.transform=`translateX(${pos}px)`;
+      // Live sunset: map drag position directly into aurora shader
+      if(hf&&hf.setMode) hf.setMode(pos/TRAVEL);
+    });
+    function onUp(e){
+      if(!dragging)return; dragging=false;
+      const dx=e.clientX-startX;
+      if(moved){ const pos=Math.max(0,Math.min(TRAVEL,(startLight?TRAVEL:0)+dx)); apply(pos>=TRAVEL/2); }
+      else apply(!light);
+    }
+    btn.addEventListener('pointerup',onUp);
+    btn.addEventListener('pointercancel',()=>{ if(dragging){dragging=false;apply(light);} });
+  })();
+
+  (function(){
+    const card=document.getElementById('seg-viewer'); if(!card) return;
+    const layers=card.querySelectorAll('.seg-layer');
+    const tabs=card.querySelectorAll('.seg-tab');
+    const rows=card.querySelectorAll('.seg-bar-row');
+    const readVal=card.querySelector('#seg-read-val');
+    const readNote=card.querySelector('#seg-read-note');
+    function select(key){
+      layers.forEach(l=>l.classList.toggle('on',l.dataset.key===key));
+      tabs.forEach(t=>t.classList.toggle('active',t.dataset.key===key));
+      rows.forEach(r=>r.classList.toggle('sel',r.dataset.key===key));
+      const tab=card.querySelector('.seg-tab[data-key="'+key+'"]');
+      const miou=tab.dataset.miou;
+      if(miou){ readVal.textContent=parseFloat(miou).toFixed(4); readNote.textContent=tab.dataset.note||''; }
+      else { readVal.textContent='—'; readNote.textContent='degraded RGB input'; }
+    }
+    tabs.forEach(t=>t.addEventListener('click',()=>select(t.dataset.key)));
+    select('diffusion');
+  })();
+
+  // ── detection console ────────────────────────────────────
+  const det=VIZ.initDetection(document.getElementById('det-canvas'),{
+    src:'uploads/pasted-1781315673538-0.png',
+    crop:{sx:648,sy:548,sw:170,sh:84},
+    boxes:[
+      {x:676,y:577,w:17,h:17,cls:'blue',conf:0.95,color:'#4a90ff'},
+      {x:688,y:581,w:26,h:29,cls:'red',conf:0.96,color:'#ff5a52'},
+      {x:709,y:577,w:20,h:23,cls:'green',conf:0.97,color:'#3ad17a'},
+      {x:723,y:573,w:27,h:25,cls:'red',conf:0.93,color:'#ff5a52'},
+      {x:748,y:577,w:22,h:30,cls:'green',conf:0.94,color:'#3ad17a'},
+      {x:769,y:573,w:19,h:20,cls:'blue',conf:0.92,color:'#4a90ff'}
+    ]
+  });
+
+  // ── per-card vizzes ──────────────────────────────────────
+  const factories={
+    tracking:VIZ.initTracking, control:VIZ.initControl,
+    segmentation:VIZ.initSegmentation, scheduler:VIZ.initScheduler, fault:VIZ.initFault
+  };
+  const instances=new Map();
+  document.querySelectorAll('canvas[data-viz]').forEach(cv=>{
+    instances.set(cv,factories[cv.dataset.viz](cv));
+  });
+
+  // start counters once when in view
+  function runCounters(scope){scope.querySelectorAll('[data-count]').forEach(VIZ.countUp);}
+
+  const vizObs=new IntersectionObserver((es)=>{
+    es.forEach(e=>{
+      const inst=instances.get(e.target);
+      if(e.isIntersecting){inst&&inst.resize&&inst.resize();inst&&inst.play&&inst.play();}
+      else{inst&&inst.stop&&inst.stop();}
+    });
+  },{threshold:.25});
+  instances.forEach((_,cv)=>vizObs.observe(cv));
+
+  // detection + metrics fire once when the console enters
+  const consoleObs=new IntersectionObserver((es)=>{
+    es.forEach(e=>{
+      if(e.isIntersecting){
+        det.resize&&det.resize();det.play&&det.play();
+        runCounters(document.getElementById('rx-metrics'));
+        consoleObs.unobserve(e.target);
+      }
+    });
+  },{threshold:.3});
+  consoleObs.observe(document.getElementById('det-wrap'));
+</script>
+</body>
+</html>

@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dhruv Choudhary — ECE @ UCSD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:      #07080D;
+      --surface: #0E1117;
+      --border:  #1E2535;
+      --text:    #EFF1F8;
+      --muted:   #7A8499;
+      --accent:  #F5A623;
+      --display: 'Space Grotesk', sans-serif;
+      --mono:    'JetBrains Mono', monospace;
+      --body:    system-ui, -apple-system, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--body);
+      font-size: 16px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    a { color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    a:hover { color: var(--text); }
+
+    /* ─── NAV ─── */
+    #nav {
+      position: fixed;
+      inset: 0 0 auto 0;
+      z-index: 100;
+      padding: 1.25rem 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background 0.35s, border-color 0.35s, backdrop-filter 0.35s;
+      border-bottom: 1px solid transparent;
+    }
+
+    #nav.scrolled {
+      background: rgba(7, 8, 13, 0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom-color: var(--border);
+    }
+
+    .nav-logo {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--text);
+      letter-spacing: 0.02em;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 0.83rem;
+      color: var(--muted);
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    /* ─── LAYOUT ─── */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 2.5rem;
+    }
+
+    /* ─── HERO ─── */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 7rem 2.5rem 5rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .hero-name {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: clamp(3.2rem, 9vw, 7rem);
+      line-height: 0.95;
+      letter-spacing: -0.025em;
+      color: var(--text);
+      margin-bottom: 1.4rem;
+    }
+
+    .hero-gps {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--accent);
+      letter-spacing: 0.07em;
+      margin-bottom: 1.6rem;
+      min-height: 1.2em;
+    }
+
+    .hero-subline {
+      font-family: var(--display);
+      font-size: clamp(0.78rem, 1.6vw, 0.95rem);
+      font-weight: 400;
+      color: var(--muted);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 2.75rem;
+    }
+
+    .hero-ctas {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .cta-btn {
+      font-size: 0.85rem;
+      color: var(--text);
+      padding: 0.55rem 1.2rem;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .cta-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .cta-ghost {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .cta-ghost:hover { color: var(--text); }
+
+    /* ─── SECTION LABEL ─── */
+    .section-label {
+      font-family: var(--display);
+      font-weight: 500;
+      font-size: 0.7rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 2.5rem;
+    }
+
+    /* ─── WORK ─── */
+    #work {
+      padding: 6rem 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .work-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    /* ─── CARDS ─── */
+    .card {
+      background: var(--surface);
+      padding: 1.75rem;
+      transition: background 0.2s;
+      position: relative;
+    }
+
+    .card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border: 2px solid transparent;
+      pointer-events: none;
+      transition: border-color 0.2s;
+      border-radius: inherit;
+    }
+
+    .card:hover { background: #111621; }
+    .card:hover::after { border-color: var(--accent); }
+
+    .card-featured {
+      grid-column: 1 / -1;
+    }
+
+    .card-featured-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2.25rem;
+      align-items: start;
+    }
+
+    .card-images {
+      display: flex;
+      flex-direction: column;
+      gap: 0.625rem;
+    }
+
+    .card-images img {
+      width: 100%;
+      border-radius: 3px;
+      object-fit: cover;
+      border: 1px solid var(--border);
+      display: block;
+    }
+
+    .card-images img:first-child { height: 230px; object-position: center 30%; }
+    .card-images img:last-child  { height: 138px; object-position: center 40%; }
+
+    .card-tag {
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 0.7rem;
+    }
+
+    .card-title {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--text);
+      line-height: 1.3;
+      margin-bottom: 0.8rem;
+    }
+
+    .card-desc {
+      font-size: 0.855rem;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 1rem;
+      text-wrap: pretty;
+    }
+
+    .card-metrics {
+      font-family: var(--mono);
+      font-size: 0.71rem;
+      color: var(--text);
+      line-height: 1.8;
+      margin-bottom: 0.6rem;
+      opacity: 0.9;
+    }
+
+    .card-fine {
+      font-size: 0.73rem;
+      color: var(--muted);
+      opacity: 0.6;
+      margin-bottom: 1.1rem;
+    }
+
+    .card-links {
+      display: flex;
+      gap: 1.1rem;
+      flex-wrap: wrap;
+    }
+
+    .card-links a {
+      font-size: 0.76rem;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .card-links a:hover {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    /* ─── EXPERIENCE ─── */
+    #experience {
+      padding: 6rem 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .exp-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 2rem;
+      padding: 1.2rem 0;
+      border-bottom: 1px solid var(--border);
+      align-items: baseline;
+    }
+
+    .exp-item:first-of-type { border-top: 1px solid var(--border); }
+
+    .exp-role {
+      font-family: var(--display);
+      font-weight: 500;
+      font-size: 0.9rem;
+      color: var(--text);
+      margin-bottom: 0.2rem;
+    }
+
+    .exp-desc {
+      font-size: 0.83rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .exp-dates {
+      font-family: var(--mono);
+      font-size: 0.69rem;
+      color: var(--muted);
+      white-space: nowrap;
+      opacity: 0.7;
+    }
+
+    /* ─── ABOUT ─── */
+    #about {
+      padding: 6rem 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .about-text {
+      max-width: 620px;
+      font-size: 1rem;
+      color: var(--muted);
+      line-height: 1.85;
+      margin-bottom: 2rem;
+      text-wrap: pretty;
+    }
+
+    .about-stack {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--muted);
+      opacity: 0.65;
+      letter-spacing: 0.02em;
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem 0 3rem;
+    }
+
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 1.25rem;
+    }
+
+    .footer-links {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a { font-size: 0.85rem; }
+
+    .footer-meta {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--muted);
+      opacity: 0.55;
+      text-align: right;
+      line-height: 1.7;
+    }
+
+    /* ─── REVEAL ─── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+    }
+
+    .reveal.in { opacity: 1; transform: translateY(0); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .reveal { opacity: 1; transform: none; transition: none; }
+      html { scroll-behavior: auto; }
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 820px) {
+      #nav { padding: 1rem 1.5rem; }
+      .container { padding: 0 1.5rem; }
+      #hero { padding: 7rem 1.5rem 4rem; }
+
+      .work-grid { grid-template-columns: 1fr; }
+      .card-featured { grid-column: 1; }
+      .card-featured-inner { grid-template-columns: 1fr; }
+      .card-images { display: grid; grid-template-columns: 1fr 1fr; }
+      .card-images img:first-child { height: 160px; }
+      .card-images img:last-child  { height: 160px; }
+
+      .exp-item { grid-template-columns: 1fr; gap: 0.3rem; }
+      .exp-dates { order: -1; }
+
+      .footer-inner { flex-direction: column; align-items: flex-start; }
+      .footer-meta { text-align: left; }
+
+      .nav-links { gap: 1.25rem; }
+    }
+
+    @media (max-width: 480px) {
+      .hero-name { font-size: 2.8rem; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav id="nav">
+    <span class="nav-logo">DC</span>
+    <ul class="nav-links">
+      <li><a href="#work">Work</a></li>
+      <li><a href="#experience">Experience</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="mailto:dhruv.roych@gmail.com">Contact</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <section id="hero">
+    <h1 class="hero-name">Dhruv<br>Choudhary</h1>
+    <div class="hero-gps" id="gps" aria-label="32.8801 degrees North, 117.2340 degrees West">32.8801° N, 117.2340° W</div>
+    <p class="hero-subline">ML &middot; Controls &middot; Autonomous Systems</p>
+    <div class="hero-ctas">
+      <a href="#work" class="cta-btn">Work</a>
+      <a href="https://github.com/dhruvdotc" target="_blank" rel="noopener" class="cta-ghost">GitHub &rarr;</a>
+    </div>
+  </section>
+
+  <!-- WORK -->
+  <section id="work">
+    <div class="container">
+      <p class="section-label">Selected Work</p>
+      <div class="work-grid">
+
+        <!-- RobotX — featured -->
+        <div class="card card-featured reveal">
+          <div class="card-featured-inner">
+            <div>
+              <p class="card-tag">Robotics · Edge Compute · 2026</p>
+              <h2 class="card-title">UAV Buoy Detection and GPS Relay</h2>
+              <p class="card-desc">Edge-compute perception pipeline on a custom quadrotor for Maritime RobotX 2026. Detects colored buoys from the air, maps pixel detections to GPS coordinates via monocular ray projection, and transmits structured payloads to a surface vessel over MAVLink UDP. Runs entirely on a Jetson Orin Nano.</p>
+              <p class="card-metrics">mAP50 0.967 &middot; Precision 0.944 &middot; F1 0.960 &middot; &lt;50ms latency</p>
+              <p class="card-fine">YOLO11n + HSV &middot; 681 labeled images &middot; Live flight demo: 6 buoys</p>
+              <div class="card-links">
+                <a href="https://saxysteph.github.io/145-237D-robotx-navigation" target="_blank" rel="noopener">Paper</a>
+                <a href="https://github.com/dhruvdotc" target="_blank" rel="noopener">GitHub</a>
+              </div>
+            </div>
+            <div class="card-images">
+              <img src="uploads/pasted-1781315673538-0.png" alt="Quadrotor over colored buoys, UCSD campus, night" loading="lazy">
+              <img src="uploads/pasted-1781315666895-0.png" alt="Drone in flight, buoys on ground below" loading="lazy">
+            </div>
+          </div>
+        </div>
+
+        <!-- CARLA MOT -->
+        <div class="card reveal">
+          <p class="card-tag">Perception · Research · 2025</p>
+          <h2 class="card-title">Detection-Tracking Coupling in Online MOT</h2>
+          <p class="card-desc">End-to-end CARLA pipeline from RGB camera to YOLOv8 to ByteTrack, evaluated across 4,500 frames. Measured how confidence thresholds propagate into the tracker: raising detection confidence from 0.40 to 0.65 cut active tracks by 60% while short-lived ID churn rose 38%.</p>
+          <p class="card-metrics">~4,500 frames &middot; ~2k trajectories &middot; CV / Kalman / GRU benchmarked</p>
+          <div class="card-links">
+            <a href="https://github.com/dhruvdotc/carla-yolov8-mot-confidence" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://www.youtube.com/watch?v=ls9mTG2TMYw" target="_blank" rel="noopener">Demo</a>
+          </div>
+        </div>
+
+        <!-- Semantic Segmentation -->
+        <div class="card reveal">
+          <p class="card-tag">ML · Robustness · 2026</p>
+          <h2 class="card-title">Confidence-Guided Repair Under Distribution Shift</h2>
+          <p class="card-desc">Trained DeepLabV3-ResNet50 on Cityscapes and evaluated under blur, noise, brightness, and JPEG corruption. Built a lightweight post-hoc repair pipeline that selectively fixes low-confidence regions. No retraining.</p>
+          <p class="card-metrics">+0.04 mIoU on corrupted regions &middot; 12.75% pixel error reduction</p>
+          <div class="card-links">
+            <a href="https://dhruvdotc.github.io/temporal_cityscapes/Final_Project_Report.pdf" target="_blank" rel="noopener">Report</a>
+            <a href="https://github.com/dhruvdotc/temporal_cityscapes" target="_blank" rel="noopener">GitHub</a>
+          </div>
+        </div>
+
+        <!-- Vehicle Steering -->
+        <div class="card reveal">
+          <p class="card-tag">Control Systems · 2026</p>
+          <h2 class="card-title">PID and Lead-Lag Lane-Keeping Controller</h2>
+          <p class="card-desc">Two controllers for a single-track bicycle model at 25 m/s. Routh-Hurwitz analysis showed proportional-only control is conditionally stable and essentially undamped. PID loop-shaping at 12 rad/s achieved 66° phase margin and zero steady-state lane error. Lead-lag root locus matched speed with 3.7mm residual offset.</p>
+          <p class="card-metrics">PM 66° &middot; Rise time 94ms &middot; BW 17.6 rad/s &middot; &lt;6cm peak lane error</p>
+          <div class="card-links">
+            <a href="#" title="Report coming soon">Report</a>
+          </div>
+        </div>
+
+        <!-- UAM Scheduler -->
+        <div class="card reveal">
+          <p class="card-tag">Optimization · Internship · 2025</p>
+          <h2 class="card-title">Day-Ahead Flight Scheduler for Urban Air Mobility</h2>
+          <p class="card-desc">Built at FastFlyrr. Uses time-expanded conflict graphs and greedy Maximum Weighted Independent Set to generate conflict-free flight plans under weather, delay, and vertiport constraints. Multi-refuel routing with global consistency checks that eliminate infeasible plans before output.</p>
+          <div class="card-links">
+            <a href="https://github.com/dhruvdotc/route-scheduler-system" target="_blank" rel="noopener">GitHub</a>
+          </div>
+        </div>
+
+        <!-- FaultWise -->
+        <div class="card reveal">
+          <p class="card-tag">Agentic AI · Internship · 2026</p>
+          <h2 class="card-title">PCB Fault Detection Tool</h2>
+          <p class="card-desc">Built at NeuralSeek. Combines rule-based electrical reasoning with AI-driven constraint checking to catch unsafe circuit configurations before physical prototyping. Flags issues and suggests fixes in one pass.</p>
+          <div class="card-links">
+            <a href="https://faultwiser.lovable.app/" target="_blank" rel="noopener">Live</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- EXPERIENCE -->
+  <section id="experience">
+    <div class="container">
+      <p class="section-label">Experience</p>
+
+      <div class="exp-item reveal">
+        <div>
+          <p class="exp-role">RobotX Navigation Team, UCSD</p>
+          <p class="exp-desc">UAV perception pipeline for Maritime RobotX 2026 (Singapore, Nov 2026).</p>
+        </div>
+        <span class="exp-dates">Apr 2026 – Present</span>
+      </div>
+
+      <div class="exp-item reveal">
+        <div>
+          <p class="exp-role">Undergraduate Researcher, Prof. Poveda</p>
+          <p class="exp-desc">Multi-agent game-theoretic simulations; model-free Nash equilibrium seeking under adversarial perturbations.</p>
+        </div>
+        <span class="exp-dates">Mar 2026 – Present</span>
+      </div>
+
+      <div class="exp-item reveal">
+        <div>
+          <p class="exp-role">Agentic AI Intern, NeuralSeek</p>
+          <p class="exp-desc">Built FaultWise.</p>
+        </div>
+        <span class="exp-dates">Jan – Mar 2026</span>
+      </div>
+
+      <div class="exp-item reveal">
+        <div>
+          <p class="exp-role">AI Navigators Intern, FastFlyrr</p>
+          <p class="exp-desc">Built the UAM route scheduler.</p>
+        </div>
+        <span class="exp-dates">Oct 2025 – Mar 2026</span>
+      </div>
+
+      <div class="exp-item reveal">
+        <div>
+          <p class="exp-role">Research Apprentice, Qualcomm Institute</p>
+          <p class="exp-desc">5G transceiver prototype, demonstrated at G.E.A.R. 2025 Symposium.</p>
+        </div>
+        <span class="exp-dates">Sep 2024 – Sep 2025</span>
+      </div>
+
+      <div class="exp-item reveal">
+        <div>
+          <p class="exp-role">Mechatronics Team, TritonBot FC (RoboCup SSL)</p>
+          <p class="exp-desc">LT3751 flyback transformer systems for solenoid kicking on autonomous robots.</p>
+        </div>
+        <span class="exp-dates">Sep 2024 – Jun 2025</span>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="container">
+      <p class="about-text">I build systems that work in the physical world: UAVs, controllers, perception pipelines. From Kuala Lumpur. At UCSD studying ECE (ML and Controls depth), graduating March 2027. Before this: founded a STEM non-profit in KL, won IEEE UCSD 2024 Quarterly Projects for a circadian-rhythm-based RGB clock.</p>
+      <p class="about-stack">Python &middot; C++ &middot; MATLAB &middot; PyTorch &middot; OpenCV &middot; ROS2 &middot; YOLO &middot; Jetson &middot; Git</p>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="mailto:dhruv.roych@gmail.com">dhruv.roych@gmail.com</a>
+          <a href="https://github.com/dhruvdotc" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://linkedin.com/in/dhruvdotc" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+        <div class="footer-meta">
+          UCSD ECE &middot; March 2027<br>
+          Open to internships and research roles
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ─── GPS SCRAMBLE ───────────────────────────────────────────────
+    (function () {
+      const TARGET = '32.8801° N, 117.2340° W';
+      const POOL   = '0123456789ABCDEF';
+      const el     = document.getElementById('gps');
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      if (reduced) { el.textContent = TARGET; return; }
+
+      // start with scrambled text immediately
+      let locked = 0;
+
+      function rand(ch) {
+        // keep punctuation/whitespace in place; scramble digits and letters
+        if (ch === '°' || ch === ' ' || ch === ',' || ch === 'N' || ch === 'W' || ch === '.') return ch;
+        return POOL[Math.floor(Math.random() * POOL.length)];
+      }
+
+      function frame() {
+        let out = '';
+        for (let i = 0; i < TARGET.length; i++) {
+          out += i < locked ? TARGET[i] : rand(TARGET[i]);
+        }
+        el.textContent = out;
+      }
+
+      // scramble fast, lock one char every ~80ms
+      const scramble = setInterval(frame, 38);
+      const lock = setInterval(() => {
+        locked++;
+        if (locked >= TARGET.length) {
+          clearInterval(scramble);
+          clearInterval(lock);
+          el.textContent = TARGET;
+        }
+      }, 78);
+    })();
+
+    // ─── NAV FROST ──────────────────────────────────────────────────
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 24);
+    }, { passive: true });
+
+    // ─── SCROLL REVEAL ──────────────────────────────────────────────
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('in');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.07, rootMargin: '0px 0px -32px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+  </script>
+
+</body>
+</html>
